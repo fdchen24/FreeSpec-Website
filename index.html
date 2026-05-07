@@ -1,244 +1,430 @@
 <!doctype html>
 <html lang="en">
+
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>FreeSpec: Training-Free Long Video Generation via Singular-Spectrum Reconstruction</title>
   <style>
-:root {
-  --bg: #f7f4ef;
-  --paper: #fffdf8;
-  --ink: #171717;
-  --muted: #6b665f;
-  --line: #ded7cc;
-  --accent: #8b2f20;
-  --accent-soft: #f3dfd8;
-  --ours: #fff1e9;
-  --shadow: 0 16px 42px rgba(20, 20, 20, 0.08);
-}
-* { box-sizing: border-box; }
-body {
-  margin: 0;
-  color: var(--ink);
-  background: var(--bg);
-  font-family: ui-serif, Georgia, "Times New Roman", serif;
-  line-height: 1.55;
-}
-a { color: inherit; }
-.hero {
-  border-bottom: 1px solid var(--line);
-  background: radial-gradient(circle at 20% 0%, #fff4e8 0, transparent 35%), var(--paper);
-}
-.hero-inner {
-  max-width: 1180px;
-  margin: 0 auto;
-  padding: 54px 24px 34px;
-  text-align: center;
-}
-h1 {
-  margin: 0 auto 16px;
-  max-width: 980px;
-  font-size: clamp(34px, 5vw, 58px);
-  line-height: 1.04;
-  letter-spacing: -.035em;
-}
-.authors { margin: 0; font-size: 17px; font-weight: 600; }
-.authors a { text-decoration: none; }
-.authors a:hover { color: var(--accent); text-decoration: underline; }
-.authors sup { font-size: 11px; color: var(--accent); padding-left: 1px; }
-.affiliations {
-  margin: 8px auto 0;
-  max-width: 960px;
-  color: var(--ink);
-  font-size: 14px;
-  line-height: 1.25;
-  text-align: center;
-}
-.affiliations span { display: block; }
-.nav {
-  display: flex;
-  justify-content: center;
-  flex-wrap: wrap;
-  gap: 10px;
-  margin-top: 28px;
-}
-.nav a, button {
-  border: 1px solid var(--line);
-  background: #fff;
-  color: var(--ink);
-  padding: 9px 14px;
-  border-radius: 999px;
-  text-decoration: none;
-  font: 600 14px/1.1 ui-sans-serif, system-ui, -apple-system, Segoe UI, sans-serif;
-  cursor: pointer;
-}
-.nav a:hover, button:hover { border-color: var(--accent); color: var(--accent); }
-main { max-width: 1220px; margin: 0 auto; padding: 26px 20px 70px; }
-.section {
-  margin: 26px 0;
-  padding: 30px;
-  background: var(--paper);
-  border: 1px solid var(--line);
-  border-radius: 24px;
-  box-shadow: var(--shadow);
-}
-.section.compact { padding: 26px; }
-h2 { margin: 0 0 14px; font-size: 30px; line-height: 1.15; letter-spacing: -.02em; }
-h3 { margin: 0 0 12px; font-size: 18px; }
-.muted { color: var(--muted); margin-top: 0; }
-.section-head {
-  display: flex;
-  justify-content: space-between;
-  gap: 24px;
-  align-items: flex-start;
-}
-.controls {
-  display: flex;
-  flex-wrap: wrap;
-  justify-content: flex-end;
-  gap: 10px;
-  min-width: 260px;
-  font: 600 13px ui-sans-serif, system-ui, -apple-system, Segoe UI, sans-serif;
-  color: var(--muted);
-}
-.controls label { display: inline-flex; align-items: center; gap: 6px; }
-.highlight-grid, .method-grid {
-  display: grid;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
-  gap: 14px;
-  margin-top: 22px;
-}
-.method-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); }
-.highlight, .method-grid article {
-  padding: 18px;
-  border-radius: 18px;
-  background: #faf7f1;
-  border: 1px solid var(--line);
-}
-.highlight strong {
-  display: block;
-  color: var(--accent);
-  margin-bottom: 4px;
-  font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, sans-serif;
-}
-.collection {
-  margin-top: 28px;
-  padding-top: 24px;
-  border-top: 1px solid var(--line);
-}
-#collections .collection:first-child, #more-results-root .collection:first-child {
-  margin-top: 10px;
-  padding-top: 0;
-  border-top: 0;
-}
-.collection-title {
-  display: flex;
-  justify-content: space-between;
-  gap: 16px;
-  align-items: baseline;
-  margin-bottom: 14px;
-}
-.case-tabs {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 8px;
-  margin: 14px 0 18px;
-}
-.case-tab {
-  padding: 8px 12px;
-  border-radius: 12px;
-  border: 1px solid var(--line);
-  background: #fff;
-  font: 700 13px ui-sans-serif, system-ui, -apple-system, Segoe UI, sans-serif;
-  cursor: pointer;
-}
-.case-tab.active { background: var(--accent); border-color: var(--accent); color: #fff; }
-.prompt-box {
-  margin: 0 0 18px;
-  padding: 14px 16px;
-  border-left: 4px solid var(--accent);
-  background: var(--accent-soft);
-  border-radius: 12px;
-  color: #3b2722;
-}
-.video-grid {
-  display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 14px;
-}
-.video-grid.pair-grid {
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-}
-.video-card {
-  background: #111;
-  border-radius: 18px;
-  overflow: hidden;
-  border: 1px solid #222;
-  box-shadow: 0 12px 24px rgba(0,0,0,.13);
-}
-.video-card video {
-  display: block;
-  width: 100%;
-  aspect-ratio: 16 / 9;
-  object-fit: contain;
-  background: #000;
-}
-.video-meta {
-  padding: 10px 12px 12px;
-  color: #f6f2ed;
-  font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, sans-serif;
-}
-.method-name { font-weight: 800; }
-.table-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 22px; }
-.table-grid.single-table { grid-template-columns: minmax(0, 1fr); }
-table { width: 100%; border-collapse: collapse; font-size: 14px; background: #fff; }
-th, td { border-bottom: 1px solid var(--line); padding: 8px 9px; text-align: right; }
-th:first-child, td:first-child { text-align: left; }
-th { font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, sans-serif; font-size: 12px; color: var(--muted); }
-tr.ours { background: var(--ours); }
-tr.ours td:first-child { font-weight: 800; }
-.figure-grid {
-  display: grid;
-  grid-template-columns: 1.25fr 1fr;
-  gap: 18px;
-  margin: 18px 0 22px;
-}
-.figure-card {
-  background: #fff;
-  border: 1px solid var(--line);
-  border-radius: 18px;
-  overflow: hidden;
-}
-.figure-card.wide { grid-column: 1 / -1; }
-.single-figure { margin: 18px 0 0; }
-.method-comparison-block { margin-top: 28px; padding-top: 24px; border-top: 1px solid var(--line); }
-.figure-card img {
-  display: block;
-  width: 100%;
-  height: auto;
-  background: #fff;
-}
-.figure-card figcaption {
-  padding: 10px 14px 12px;
-  color: var(--muted);
-  font: 600 13px ui-sans-serif, system-ui, -apple-system, Segoe UI, sans-serif;
-}
-footer { text-align: center; padding: 30px; color: var(--muted); }
-@media (max-width: 980px) {
-  .highlight-grid, .method-grid, .table-grid, .affiliations { grid-template-columns: 1fr 1fr; }
-  .video-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
-  .section-head { flex-direction: column; }
-  .controls { justify-content: flex-start; }
-  .figure-grid { grid-template-columns: 1fr; }
-}
-@media (max-width: 640px) {
-  main { padding: 16px 10px 44px; }
-  .section { padding: 20px 16px; border-radius: 18px; }
-  .highlight-grid, .method-grid, .table-grid, .video-grid, .affiliations { grid-template-columns: 1fr; }
-}
+    :root {
+      --bg: #f7f4ef;
+      --paper: #fffdf8;
+      --ink: #171717;
+      --muted: #6b665f;
+      --line: #ded7cc;
+      --accent: #8b2f20;
+      --accent-soft: #f3dfd8;
+      --ours: #fff1e9;
+      --shadow: 0 16px 42px rgba(20, 20, 20, 0.08);
+    }
 
-</style>
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      color: var(--ink);
+      background: var(--bg);
+      font-family: ui-serif, Georgia, "Times New Roman", serif;
+      line-height: 1.55;
+    }
+
+    a {
+      color: inherit;
+    }
+
+    .hero {
+      border-bottom: 1px solid var(--line);
+      background: radial-gradient(circle at 20% 0%, #fff4e8 0, transparent 35%), var(--paper);
+    }
+
+    .hero-inner {
+      max-width: 1180px;
+      margin: 0 auto;
+      padding: 54px 24px 34px;
+      text-align: center;
+    }
+
+    h1 {
+      margin: 0 auto 16px;
+      max-width: 980px;
+      font-size: clamp(34px, 5vw, 58px);
+      line-height: 1.04;
+      letter-spacing: -.035em;
+    }
+
+    .authors {
+      margin: 0;
+      font-size: 17px;
+      font-weight: 600;
+    }
+
+    .authors a {
+      text-decoration: none;
+    }
+
+    .authors a:hover {
+      color: var(--accent);
+      text-decoration: underline;
+    }
+
+    .authors sup {
+      font-size: 11px;
+      color: var(--accent);
+      padding-left: 1px;
+    }
+
+    .affiliations {
+      margin: 8px auto 0;
+      max-width: 960px;
+      color: var(--ink);
+      font-size: 14px;
+      line-height: 1.25;
+      text-align: center;
+    }
+
+    .affiliations span {
+      display: block;
+    }
+
+    .nav {
+      display: flex;
+      justify-content: center;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin-top: 28px;
+    }
+
+    .nav a,
+    button {
+      border: 1px solid var(--line);
+      background: #fff;
+      color: var(--ink);
+      padding: 9px 14px;
+      border-radius: 999px;
+      text-decoration: none;
+      font: 600 14px/1.1 ui-sans-serif, system-ui, -apple-system, Segoe UI, sans-serif;
+      cursor: pointer;
+    }
+
+    .nav a:hover,
+    button:hover {
+      border-color: var(--accent);
+      color: var(--accent);
+    }
+
+    main {
+      max-width: 1220px;
+      margin: 0 auto;
+      padding: 26px 20px 70px;
+    }
+
+    .section {
+      margin: 26px 0;
+      padding: 30px;
+      background: var(--paper);
+      border: 1px solid var(--line);
+      border-radius: 24px;
+      box-shadow: var(--shadow);
+    }
+
+    .section.compact {
+      padding: 26px;
+    }
+
+    h2 {
+      margin: 0 0 14px;
+      font-size: 30px;
+      line-height: 1.15;
+      letter-spacing: -.02em;
+    }
+
+    h3 {
+      margin: 0 0 12px;
+      font-size: 18px;
+    }
+
+    .muted {
+      color: var(--muted);
+      margin-top: 0;
+    }
+
+    .section-head {
+      display: flex;
+      justify-content: space-between;
+      gap: 24px;
+      align-items: flex-start;
+    }
+
+    .controls {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: flex-end;
+      gap: 10px;
+      min-width: 260px;
+      font: 600 13px ui-sans-serif, system-ui, -apple-system, Segoe UI, sans-serif;
+      color: var(--muted);
+    }
+
+    .controls label {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .highlight-grid,
+    .method-grid {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 14px;
+      margin-top: 22px;
+    }
+
+    .method-grid {
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+
+    .highlight,
+    .method-grid article {
+      padding: 18px;
+      border-radius: 18px;
+      background: #faf7f1;
+      border: 1px solid var(--line);
+    }
+
+    .highlight strong {
+      display: block;
+      color: var(--accent);
+      margin-bottom: 4px;
+      font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, sans-serif;
+    }
+
+    .collection {
+      margin-top: 28px;
+      padding-top: 24px;
+      border-top: 1px solid var(--line);
+    }
+
+    #collections .collection:first-child,
+    #more-results-root .collection:first-child {
+      margin-top: 10px;
+      padding-top: 0;
+      border-top: 0;
+    }
+
+    .collection-title {
+      display: flex;
+      justify-content: space-between;
+      gap: 16px;
+      align-items: baseline;
+      margin-bottom: 14px;
+    }
+
+    .case-tabs {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin: 14px 0 18px;
+    }
+
+    .case-tab {
+      padding: 8px 12px;
+      border-radius: 12px;
+      border: 1px solid var(--line);
+      background: #fff;
+      font: 700 13px ui-sans-serif, system-ui, -apple-system, Segoe UI, sans-serif;
+      cursor: pointer;
+    }
+
+    .case-tab.active {
+      background: var(--accent);
+      border-color: var(--accent);
+      color: #fff;
+    }
+
+    .prompt-box {
+      margin: 0 0 18px;
+      padding: 14px 16px;
+      border-left: 4px solid var(--accent);
+      background: var(--accent-soft);
+      border-radius: 12px;
+      color: #3b2722;
+    }
+
+    .video-grid {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 14px;
+    }
+
+    .video-grid.pair-grid {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .video-card {
+      background: #111;
+      border-radius: 18px;
+      overflow: hidden;
+      border: 1px solid #222;
+      box-shadow: 0 12px 24px rgba(0, 0, 0, .13);
+    }
+
+    .video-card video {
+      display: block;
+      width: 100%;
+      aspect-ratio: 16 / 9;
+      object-fit: contain;
+      background: #000;
+    }
+
+    .video-meta {
+      padding: 10px 12px 12px;
+      color: #f6f2ed;
+      font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, sans-serif;
+    }
+
+    .method-name {
+      font-weight: 800;
+    }
+
+    .table-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 22px;
+    }
+
+    .table-grid.single-table {
+      grid-template-columns: minmax(0, 1fr);
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 14px;
+      background: #fff;
+    }
+
+    th,
+    td {
+      border-bottom: 1px solid var(--line);
+      padding: 8px 9px;
+      text-align: right;
+    }
+
+    th:first-child,
+    td:first-child {
+      text-align: left;
+    }
+
+    th {
+      font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, sans-serif;
+      font-size: 12px;
+      color: var(--muted);
+    }
+
+    tr.ours {
+      background: var(--ours);
+    }
+
+    tr.ours td:first-child {
+      font-weight: 800;
+    }
+
+    .figure-grid {
+      display: grid;
+      grid-template-columns: 1.25fr 1fr;
+      gap: 18px;
+      margin: 18px 0 22px;
+    }
+
+    .figure-card {
+      background: #fff;
+      border: 1px solid var(--line);
+      border-radius: 18px;
+      overflow: hidden;
+    }
+
+    .figure-card.wide {
+      grid-column: 1 / -1;
+    }
+
+    .single-figure {
+      margin: 18px 0 0;
+    }
+
+    .method-comparison-block {
+      margin-top: 28px;
+      padding-top: 24px;
+      border-top: 1px solid var(--line);
+    }
+
+    .figure-card img {
+      display: block;
+      width: 100%;
+      height: auto;
+      background: #fff;
+    }
+
+    .figure-card figcaption {
+      padding: 10px 14px 12px;
+      color: var(--muted);
+      font: 600 13px ui-sans-serif, system-ui, -apple-system, Segoe UI, sans-serif;
+    }
+
+    footer {
+      text-align: center;
+      padding: 30px;
+      color: var(--muted);
+    }
+
+    @media (max-width: 980px) {
+
+      .highlight-grid,
+      .method-grid,
+      .table-grid,
+      .affiliations {
+        grid-template-columns: 1fr 1fr;
+      }
+
+      .video-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+
+      .section-head {
+        flex-direction: column;
+      }
+
+      .controls {
+        justify-content: flex-start;
+      }
+
+      .figure-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    @media (max-width: 640px) {
+      main {
+        padding: 16px 10px 44px;
+      }
+
+      .section {
+        padding: 20px 16px;
+        border-radius: 18px;
+      }
+
+      .highlight-grid,
+      .method-grid,
+      .table-grid,
+      .video-grid,
+      .affiliations {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
 </head>
+
 <body>
   <header class="hero" id="top">
     <div class="hero-inner">
@@ -277,15 +463,18 @@ footer { text-align: center; padding: 30px; color: var(--muted); }
       <div class="method-grid">
         <article>
           <h3>Dual-branch self-attention</h3>
-          <p>FreeSpec replaces self-attention with global full-window and local sliding-window branches during inference while keeping the pretrained short-video model frozen.</p>
+          <p>FreeSpec replaces self-attention with global full-window and local sliding-window branches during inference
+            while keeping the pretrained short-video model frozen.</p>
         </article>
         <article>
           <h3>SVD-guided spectral fusion</h3>
-          <p>Global and local outputs are decomposed by SVD, and global information is injected through timestep- and rank-aware singular-spectrum modulation.</p>
+          <p>Global and local outputs are decomposed by SVD, and global information is injected through timestep- and
+            rank-aware singular-spectrum modulation.</p>
         </article>
         <article>
           <h3>Local-basis reconstruction</h3>
-          <p>The modulated spectrum is reconstructed under the local singular basis, preserving high-rank spatial-temporal variations while retaining controlled low-rank structural guidance.</p>
+          <p>The modulated spectrum is reconstructed under the local singular basis, preserving high-rank
+            spatial-temporal variations while retaining controlled low-rank structural guidance.</p>
         </article>
       </div>
     </section>
@@ -298,7 +487,9 @@ footer { text-align: center; padding: 30px; color: var(--muted); }
 
     <section class="section" id="results">
       <h2>Quantitative Results</h2>
-      <p class="muted">All results are evaluated at 4× the native base-model inference length. Inference time denotes runtime on an A100 GPU. Best scores are shown in bold, second-best scores are underlined, and the FreeSpec row is highlighted.</p>
+      <p class="muted">All results are evaluated at 4× the native base-model inference length. Inference time denotes
+        runtime on an A100 GPU. Best scores are shown in bold, second-best scores are underlined, and the FreeSpec row
+        is highlighted.</p>
       <div class="table-grid">
         <div>
           <h3>Wan2.1-1.3B</h3>
@@ -329,7 +520,8 @@ footer { text-align: center; padding: 30px; color: var(--muted); }
       <div class="section-head">
         <div>
           <h2>More Results</h2>
-          <p class="muted">Additional side-by-side examples. The left column shows Direct and the right column shows FreeSpec (Ours).</p>
+          <p class="muted">Additional side-by-side examples. The left column shows Direct and the right column shows
+            FreeSpec (Ours).</p>
         </div>
       </div>
       <div id="more-results-root"></div>
@@ -340,219 +532,220 @@ footer { text-align: center; padding: 30px; color: var(--muted); }
     <a href="#top">Back to top</a>
   </footer>
 
-  <script>window.__FREESPEC_MANIFEST__ = {"paper":{"title":"FreeSpec: Training-Free Long Video Generation via Singular-Spectrum Reconstruction","authors":[{"name":"Fangda Chen","affils":[1],"url":"https://fdchen24.github.io/"},{"name":"Shanshan Zhao","affils":[2],"url":"https://sshan-zhao.github.io/"},{"name":"Longrong Yang","affils":[3],"url":"https://longrongyang.github.io/yanglongrong.github.io/"},{"name":"Chuanfu Xu","affils":[1],"url":"https://scholar.google.com/citations?user=7OZMTAMAAAAJ"},{"name":"Zhigang Luo","affils":[4],"url":"https://scholar.google.com/citations?user=fxUpaiMAAAAJ"},{"name":"Long Lan","affils":[1],"corresponding":true,"url":"https://scholar.google.com/citations?user=huVW6Y8AAAAJ"}],"affiliations":["College of Computer Science and Technology, National University of Defense Technology","Alibaba International Digital Commerce","Zhejiang University","Xiangjiang Laboratory, Changsha, Hunan, China"],"abstract":"Video diffusion models perform well in short-video synthesis, but their training-free extension to long videos often suffers from content drift, temporal inconsistency, and over-smoothed dynamics. Existing methods improve temporal consistency by combining a global branch with a local branch, but they often further decompose appearance consistency and temporal dynamics within each branch using predefined criteria. This assignment is unreliable when appearance and action progression are tightly coupled, such as in camera motion and sequential motion. We analyze the temporal extension issue from a singular-spectrum perspective and show that enlarged self-attention windows induce spectral concentration: spectral energy becomes dominated by a few low-rank singular directions, preserving coarse structure but suppressing high-rank spatial details and motion-rich temporal variations. FreeSpec mitigates this problem by decomposing global and local features with singular value decomposition, using the global branch as low-rank spectral guidance and the local branch as a high-rank reconstruction basis. This spectrum-level fusion avoids rigid feature partitioning, preserving long-range consistency while better retaining spatial details and temporal dynamics.","highlights":["Singular-spectrum analysis shows that enlarged self-attention windows induce spectral concentration and suppress high-rank local variations.","FreeSpec uses the full-window global branch as low-rank spectral guidance rather than a rigid appearance component.","Local-basis reconstruction preserves high-rank spatial details and temporal dynamics while retaining controlled global structure.","Experiments on Wan2.1 and LTX-Video show improved long-video generation, especially for temporal dynamics and visual consistency."]},"metrics":{"wan":[["Direct","0.9865","0.9752","0.9876","0.0468","0.5858","0.6274","~38 mins"],["Sliding Window","0.9791","0.9677","0.9887","0.3955","0.6018","0.6424","~25 mins"],["FreeNoise","0.9777","0.9667","0.9847","0.2395","0.6074","0.6612","~25 mins"],["FreeLong","0.9849","0.9731","0.9856","0.2514","0.6057","0.6374","~61 mins"],["FreePCA","0.9857","0.9734","0.9853","0.2177","0.6005","0.6372","~55 mins"],["FreeSpec (Ours)","0.9863","0.9745","0.9902","0.3200","0.6104","0.6415","~56 mins"]],"ltx":[["Direct","0.9726","0.9682","0.9800","0.1933","0.5448","0.6468","~13 mins"],["Sliding Window","0.9559","0.9620","0.9795","0.2311","0.5442","0.6282","~12 mins"],["FreeNoise","0.9618","0.9614","0.9822","0.0556","0.5230","0.6528","~12 mins"],["FreeLong","0.9699","0.9640","0.9804","0.0311","0.5430","0.6478","~22 mins"],["FreePCA","0.9610","0.9637","0.9796","0.2111","0.5453","0.6332","~21 mins"],["FreeSpec (Ours)","0.9622","0.9677","0.9892","0.2478","0.5464","0.6382","~22 mins"]]},"motivation_text":"Training-free long-video generation remains challenging because pretrained short-video models are optimized within a limited temporal receptive field and often suffer from content drift, temporal inconsistency, repetitive patterns, or visual blurring when extrapolated to longer sequences. Existing global-local fusion methods improve long-range consistency, but their predefined decomposition criteria can be unreliable because appearance and motion are tightly coupled in video features. To address these challenges, we analyze global- and local-branch latents from a singular-spectrum perspective. When the attention window is enlarged from the native token length W to 2W, 3W, and 4W, the effective rank drops rapidly. This indicates stronger spectral concentration, where spectral energy is dominated by a few low-rank singular directions. Low-rank reconstructions show that these components mainly preserve coarse layout and long-range structure, while discarding fine spatial details and motion-rich temporal variations. This explains why enlarged attention windows cause over-smoothed representations with visual blurring and repetitive patterns: spectral concentration overemphasizes low-rank global structure and suppresses high-rank local variations.","method_overview_text":"FreeSpec is motivated by the spectral concentration observed in enlarged attention windows. It keeps the pretrained short-video diffusion model frozen and replaces self-attention layers with SVD-guided dual-branch self-attention during inference. For each replaced layer, FreeSpec constructs a global full-window branch and a local sliding-window branch, decomposes their outputs with SVD, injects global information through timestep- and rank-aware singular-spectrum modulation, and reconstructs the fused representation under the local singular basis. This design allows global guidance to regulate low-rank structural energy while preserving high-rank spatial-temporal variations from the local branch. FreeSpec performs SVD-guided dual-branch self-attention only in the early structure-forming denoising stage and switches to local-only inference in later steps for efficiency.","method_comparison_text":"FreeSpec differs from prior fusion paradigms in whether branch features are partitioned into appearance and motion components. FreeLong fuses low-frequency global components with high-frequency local components, while FreePCA selects cosine-similar PCA components from the global branch and dissimilar ones from the local branch. Both methods use predefined component selection to assign appearance consistency and motion dynamics to different components. In contrast, FreeSpec does not separate appearance and motion. It treats the global branch as spectral guidance and reconstructs the representation under the local singular basis, using low-rank global structure while preserving high-rank local details and temporal dynamics.","method_limitations":{"Direct":"over-smoothed visual and dynamics","Sliding Window":"weak consistency","FreeNoise":"limited consistency","FreeLong":"constraint motion","FreePCA":"incomplete motion"},"figures":[{"id":"motivation","title":"Spectral and qualitative analysis of enlarged self-attention windows","src":"figs/svd_singular_analysis.png"},{"id":"framework","title":"FreeSpec framework","src":"figs/framework.png"},{"id":"fusion","title":"Comparison with global-local fusion paradigms","src":"figs/method-comparion.png"}],"collections":[{"id":"qualitative_results","title":"","description":"","exists":true,"layout":"grid6","cases":[{"id":"41","original_id":"41","folder":"41-","prompt":"CG game concept digital art, a human gently petting a large, fluffy dog with soft fur and big floppy ears. The dog has a warm brown coat and sparkling amber eyes. The human has neat blonde hair and kind brown eyes, wearing a cozy sweater and jeans. They are sitting on a grassy hillside, surrounded by blooming wildflowers and tall trees. The dog leans into the touch, wagging its tail excitedly. The sun sets behind them, casting a golden glow over the scene. Background features rolling hills and distant mountains. Low-angle, wide-shot view.","videos":[{"method":"Direct","src":"videos/wan_compare/0-Direct/41-/00.mp4","filename":"00.mp4"},{"method":"Sliding Window","src":"videos/wan_compare/1-Sliding Window/41-/00.mp4","filename":"00.mp4"},{"method":"FreeNoise","src":"videos/wan_compare/2-FreeNoise/41-/00.mp4","filename":"00.mp4"},{"method":"FreeLong","src":"videos/wan_compare/3-FreeLong/41-/00.mp4","filename":"00.mp4"},{"method":"FreePCA","src":"videos/wan_compare/4-FreePCA/41-/00.mp4","filename":"00.mp4"},{"method":"FreeSpec (Ours)","src":"videos/wan_compare/5-FreeSpec/41-/00.mp4","filename":"00.mp4"}],"source":"Comparison on Wan2.1-1.3B","display_id":"1"},{"id":"20","original_id":"20","folder":"20-","prompt":"A motocross rider, wearing full protective gear and a helmet covered in mud, sits on a dirt bike at the starting gate of a muddy track. The rider revs the engine and launches forward with a wheelie, drifts sideways through a sharp muddy corner, jumps over a massive dirt ramp catching significant air, and accelerates rapidly down the straightaway. The scene is chaotic and dirty, with mud clods flying at the camera and motion blur emphasizing the high speed.","videos":[{"method":"Direct","src":"videos/teaser/0-Direct/20-/20-FreeSVD_global-seed_42.mp4","filename":"20-FreeSVD_global-seed_42.mp4"},{"method":"Sliding Window","src":"videos/teaser/1-Sliding Window/20-/20-FreeSVD_local-seed_42.mp4","filename":"20-FreeSVD_local-seed_42.mp4"},{"method":"FreeNoise","src":"videos/teaser/2-FreeNoise/20-/20-FreeNoise_local-seed_42.mp4","filename":"20-FreeNoise_local-seed_42.mp4"},{"method":"FreeLong","src":"videos/teaser/3-FreeLong/20-/20-FreeSVD_v23-seed_42.mp4","filename":"20-FreeSVD_v23-seed_42.mp4"},{"method":"FreePCA","src":"videos/teaser/4-FreePCA/20-/20-FreeSVD_v102-seed_42.mp4","filename":"20-FreeSVD_v102-seed_42.mp4"},{"method":"FreeSpec (Ours)","src":"videos/teaser/5-FreeSpec/20-/20-FreeSVD_v145-seed_91428450.mp4","filename":"20-FreeSVD_v145-seed_91428450.mp4"}],"source":"Overview Result","display_id":"2"},{"id":"14","original_id":"14","folder":"14-","prompt":"The camera begins at the top of the dense forest, where thick morning mist drifts gracefully between towering evergreens, sunlight filtering through the leaves and casting dappled spots of light on the forest floor. The air is fresh and moist, carrying the scent of damp earth and greenery. Slowly, the camera descends, revealing dewdrops glistening on the leaves as a gentle breeze rustles through the branches, creating a soft, soothing sound. Along the winding woodland path, the camera occasionally captures a squirrel leaping nimbly between trees, its agile figure darting gracefully across the branches. Continuing its journey, the camera eventually arrives at a tranquil lake, where the surface of the water mirrors the towering trees and distant mountains. In the distance, a heron takes off from the lakeshore, breaking the stillness of the water, leaving ripples that spread gently across the surface. The camera follows the heron's flight, gradually pulling back to reveal the entire serene beauty of the lake, capturing the peaceful ambiance and the interplay of light and shadow.","videos":[{"method":"Direct","src":"videos/teaser/0-Direct/14-/00.mp4","filename":"00.mp4"},{"method":"Sliding Window","src":"videos/teaser/1-Sliding Window/14-/00.mp4","filename":"00.mp4"},{"method":"FreeNoise","src":"videos/teaser/2-FreeNoise/14-/00.mp4","filename":"00.mp4"},{"method":"FreeLong","src":"videos/teaser/3-FreeLong/14-/00.mp4","filename":"00.mp4"},{"method":"FreePCA","src":"videos/teaser/4-FreePCA/14-/00.mp4","filename":"00.mp4"},{"method":"FreeSpec (Ours)","src":"videos/teaser/5-FreeSpec/14-/00.mp4","filename":"00.mp4"}],"source":"Overview Result","display_id":"3"},{"id":"10","original_id":"10","folder":"10-","prompt":"A professional surfer in a matte black wetsuit sits astride a white surfboard, bobbing gently in the turquoise waters of a tropical break during golden hour. The surfer begins paddling furiously with deep, strong arm strokes as a massive wave rises behind them. They swiftly pop up into a standing position, finding their balance instantly on the moving board. Leaning hard, they carve a deep, aggressive turn along the face of the wave, continuing to glide smoothly down the water tunnel. 4k video, water droplets in air, sun flare, high contrast.","videos":[{"method":"Direct","src":"videos/teaser/0-Direct/10-/10-FreeSVD_global-seed_42.mp4","filename":"10-FreeSVD_global-seed_42.mp4"},{"method":"Sliding Window","src":"videos/teaser/1-Sliding Window/10-/10-FreeSVD_local-seed_42.mp4","filename":"10-FreeSVD_local-seed_42.mp4"},{"method":"FreeNoise","src":"videos/teaser/2-FreeNoise/10-/10-FreeNoise_local-seed_42.mp4","filename":"10-FreeNoise_local-seed_42.mp4"},{"method":"FreeLong","src":"videos/teaser/3-FreeLong/10-/10-FreeSVD_v23-seed_42.mp4","filename":"10-FreeSVD_v23-seed_42.mp4"},{"method":"FreePCA","src":"videos/teaser/4-FreePCA/10-/10-FreeSVD_v102-seed_42.mp4","filename":"10-FreeSVD_v102-seed_42.mp4"},{"method":"FreeSpec (Ours)","src":"videos/teaser/5-FreeSpec/10-/10-FreeSVD_v145-seed_42.mp4","filename":"10-FreeSVD_v145-seed_42.mp4"}],"source":"Overview Result","display_id":"4"}]}],"more_results":{"id":"more_results","title":"","description":"","exists":true,"layout":"pair","cases":[{"id":"1","original_id":"3","folder":"3-","prompt":"A dramatic lightning strike illuminates the iconic Eiffel Tower against a backdrop of dark, ominous clouds in the sky. The lightning crackles and illuminates the structure, casting stark shadows and highlighting every intricate detail. Dark storm clouds swirl menacingly overhead, adding to the intense atmosphere. The Eiffel Tower stands tall and proud amidst the storm, its metal lattice frame gleaming in the electric flash. The scene captures the raw power and beauty of nature's fury, with the lightning slicing through the sky. The lightning bolt strikes the tower, sending a shockwave through the air as it leaves a trail of sparks. The image is captured from a low-angle perspective, emphasizing the grandeur and vulnerability of the tower during the storm.","videos":[{"method":"Direct","src":"videos/more_results/0-Direct/3-/00.mp4","filename":"00.mp4"},{"method":"FreeSpec (Ours)","src":"videos/more_results/5-FreeSpec/3-/00.mp4","filename":"00.mp4"}]},{"id":"2","original_id":"11","folder":"11-","prompt":"A joyful fuzzy panda playing a small electric guitar near a cozy campfire. The panda has bright green fur and twinkling blue eyes, surrounded by a warm glow from the flames. In the background, majestic snow mountains with soft, fluffy clouds contrast against a clear, starry night sky. The campfire creates a soft, flickering light, casting shadows on the snow-covered ground. The panda is positioned between the fire and the mountains, its arms gracefully moving as it strums the guitar. The scene is captured with a low-angle shot, emphasizing the serene atmosphere and the lively interaction between the panda and the campfire. Snowflakes gently fall, adding a touch of winter magic. Warm ambient lighting enhances the overall mood.","videos":[{"method":"Direct","src":"videos/more_results/0-Direct/11-/00.mp4","filename":"00.mp4"},{"method":"FreeSpec (Ours)","src":"videos/more_results/5-FreeSpec/11-/00.mp4","filename":"00.mp4"}]},{"id":"3","original_id":"45","folder":"45-","prompt":"A vintage steam train gliding gracefully on the right side of a serene lake, as seen from the front. The train is adorned with intricate wooden carvings and painted with vibrant colors, capturing the charm of a bygone era. It travels along a narrow, winding track, with lush greenery lining both sides. The boat is moored near the shore, with a picturesque landscape behind it featuring rolling hills and quaint cottages. The sun sets in the background, casting a warm golden glow over the water. The train moves steadily, the wheels creaking softly as they roll over the tracks. The boat reflects the fading light, creating a harmonious blend of nature and industrial heritage. The scene is captured in a cinematic widescreen format, emphasizing the dynamic motion and subtle textures of the elements. Frontal view, medium shot focusing on the train and the boat.","videos":[{"method":"Direct","src":"videos/more_results/0-Direct/45-/00.mp4","filename":"00.mp4"},{"method":"FreeSpec (Ours)","src":"videos/more_results/5-FreeSpec/45-/00.mp4","filename":"00.mp4"}]},{"id":"4","original_id":"96","folder":"96-","prompt":"A sleek black motorcycle weaving skillfully through a narrow city street corner. The rider, clad in tight leather gear, leans confidently into the turn with their helmet securely fastened. The motorcycle's tires screech lightly as it navigates the tight curve, showcasing impressive handling skills. The background features bustling traffic and illuminated buildings, adding to the dynamic atmosphere. The scene captures the essence of urban racing and adrenaline-pumping moments. Low-angle shot focusing on the rider and motorcycle, medium shot of the corner, and a wide shot of the intersection.","videos":[{"method":"Direct","src":"videos/more_results/0-Direct/96-/00.mp4","filename":"00.mp4"},{"method":"FreeSpec (Ours)","src":"videos/more_results/5-FreeSpec/96-/00.mp4","filename":"00.mp4"}]}]}};</script>
-<script>
-async function loadManifest() {
-  if (window.__FREESPEC_MANIFEST__) return window.__FREESPEC_MANIFEST__;
-  throw new Error('Embedded manifest is missing. Rebuild the offline site.');
-}
+  <script>window.__FREESPEC_MANIFEST__ = { "paper": { "title": "FreeSpec: Training-Free Long Video Generation via Singular-Spectrum Reconstruction", "authors": [{ "name": "Fangda Chen", "affils": [1], "url": "https://fdchen24.github.io/" }, { "name": "Shanshan Zhao", "affils": [2], "url": "https://sshan-zhao.github.io/" }, { "name": "Longrong Yang", "affils": [3], "url": "https://longrongyang.github.io/yanglongrong.github.io/" }, { "name": "Chuanfu Xu", "affils": [1], "url": "https://scholar.google.com/citations?user=7OZMTAMAAAAJ" }, { "name": "Zhigang Luo", "affils": [4], "url": "https://scholar.google.com/citations?user=fxUpaiMAAAAJ" }, { "name": "Long Lan", "affils": [1], "corresponding": true, "url": "https://scholar.google.com/citations?user=huVW6Y8AAAAJ" }], "affiliations": ["College of Computer Science and Technology, National University of Defense Technology", "Alibaba International Digital Commerce", "Zhejiang University", "Xiangjiang Laboratory, Changsha, Hunan, China"], "abstract": "Video diffusion models perform well in short-video synthesis, but their training-free extension to long videos often suffers from content drift, temporal inconsistency, and over-smoothed dynamics. Existing methods improve temporal consistency by combining a global branch with a local branch, but they often further decompose appearance consistency and temporal dynamics within each branch using predefined criteria. This assignment is unreliable when appearance and action progression are tightly coupled, such as in camera motion and sequential motion. We analyze the temporal extension issue from a singular-spectrum perspective and show that enlarged self-attention windows induce spectral concentration: spectral energy becomes dominated by a few low-rank singular directions, preserving coarse structure but suppressing high-rank spatial details and motion-rich temporal variations. FreeSpec mitigates this problem by decomposing global and local features with singular value decomposition, using the global branch as low-rank spectral guidance and the local branch as a high-rank reconstruction basis. This spectrum-level fusion avoids rigid feature partitioning, preserving long-range consistency while better retaining spatial details and temporal dynamics.", "highlights": ["Singular-spectrum analysis shows that enlarged self-attention windows induce spectral concentration and suppress high-rank local variations.", "FreeSpec uses the full-window global branch as low-rank spectral guidance rather than a rigid appearance component.", "Local-basis reconstruction preserves high-rank spatial details and temporal dynamics while retaining controlled global structure.", "Experiments on Wan2.1 and LTX-Video show improved long-video generation, especially for temporal dynamics and visual consistency."] }, "metrics": { "wan": [["Direct", "0.9865", "0.9752", "0.9876", "0.0468", "0.5858", "0.6274", "~38 mins"], ["Sliding Window", "0.9791", "0.9677", "0.9887", "0.3955", "0.6018", "0.6424", "~25 mins"], ["FreeNoise", "0.9777", "0.9667", "0.9847", "0.2395", "0.6074", "0.6612", "~25 mins"], ["FreeLong", "0.9849", "0.9731", "0.9856", "0.2514", "0.6057", "0.6374", "~61 mins"], ["FreePCA", "0.9857", "0.9734", "0.9853", "0.2177", "0.6005", "0.6372", "~55 mins"], ["FreeSpec (Ours)", "0.9863", "0.9745", "0.9902", "0.3200", "0.6104", "0.6415", "~56 mins"]], "ltx": [["Direct", "0.9726", "0.9682", "0.9800", "0.1933", "0.5448", "0.6468", "~13 mins"], ["Sliding Window", "0.9559", "0.9620", "0.9795", "0.2311", "0.5442", "0.6282", "~12 mins"], ["FreeNoise", "0.9618", "0.9614", "0.9822", "0.0556", "0.5230", "0.6528", "~12 mins"], ["FreeLong", "0.9699", "0.9640", "0.9804", "0.0311", "0.5430", "0.6478", "~22 mins"], ["FreePCA", "0.9610", "0.9637", "0.9796", "0.2111", "0.5453", "0.6332", "~21 mins"], ["FreeSpec (Ours)", "0.9622", "0.9677", "0.9892", "0.2478", "0.5464", "0.6382", "~22 mins"]] }, "motivation_text": "Training-free long-video generation remains challenging because pretrained short-video models are optimized within a limited temporal receptive field and often suffer from content drift, temporal inconsistency, repetitive patterns, or visual blurring when extrapolated to longer sequences. Existing global-local fusion methods improve long-range consistency, but their predefined decomposition criteria can be unreliable because appearance and motion are tightly coupled in video features. To address these challenges, we analyze global- and local-branch latents from a singular-spectrum perspective. When the attention window is enlarged from the native token length W to 2W, 3W, and 4W, the effective rank drops rapidly. This indicates stronger spectral concentration, where spectral energy is dominated by a few low-rank singular directions. Low-rank reconstructions show that these components mainly preserve coarse layout and long-range structure, while discarding fine spatial details and motion-rich temporal variations. This explains why enlarged attention windows cause over-smoothed representations with visual blurring and repetitive patterns: spectral concentration overemphasizes low-rank global structure and suppresses high-rank local variations.", "method_overview_text": "FreeSpec is motivated by the spectral concentration observed in enlarged attention windows. It keeps the pretrained short-video diffusion model frozen and replaces self-attention layers with SVD-guided dual-branch self-attention during inference. For each replaced layer, FreeSpec constructs a global full-window branch and a local sliding-window branch, decomposes their outputs with SVD, injects global information through timestep- and rank-aware singular-spectrum modulation, and reconstructs the fused representation under the local singular basis. This design allows global guidance to regulate low-rank structural energy while preserving high-rank spatial-temporal variations from the local branch. FreeSpec performs SVD-guided dual-branch self-attention only in the early structure-forming denoising stage and switches to local-only inference in later steps for efficiency.", "method_comparison_text": "FreeSpec differs from prior fusion paradigms in whether branch features are partitioned into appearance and motion components. FreeLong fuses low-frequency global components with high-frequency local components, while FreePCA selects cosine-similar PCA components from the global branch and dissimilar ones from the local branch. Both methods use predefined component selection to assign appearance consistency and motion dynamics to different components. In contrast, FreeSpec does not separate appearance and motion. It treats the global branch as spectral guidance and reconstructs the representation under the local singular basis, using low-rank global structure while preserving high-rank local details and temporal dynamics.", "method_limitations": { "Direct": "over-smoothed visual and dynamics", "Sliding Window": "weak consistency", "FreeNoise": "limited consistency", "FreeLong": "constraint motion", "FreePCA": "incomplete motion" }, "figures": [{ "id": "motivation", "title": "Spectral and qualitative analysis of enlarged self-attention windows", "src": "figs/svd_singular_analysis.png" }, { "id": "framework", "title": "FreeSpec framework", "src": "figs/framework.png" }, { "id": "fusion", "title": "Comparison with global-local fusion paradigms", "src": "figs/method-comparion.png" }], "collections": [{ "id": "qualitative_results", "title": "", "description": "", "exists": true, "layout": "grid6", "cases": [{ "id": "41", "original_id": "41", "folder": "41-", "prompt": "CG game concept digital art, a human gently petting a large, fluffy dog with soft fur and big floppy ears. The dog has a warm brown coat and sparkling amber eyes. The human has neat blonde hair and kind brown eyes, wearing a cozy sweater and jeans. They are sitting on a grassy hillside, surrounded by blooming wildflowers and tall trees. The dog leans into the touch, wagging its tail excitedly. The sun sets behind them, casting a golden glow over the scene. Background features rolling hills and distant mountains. Low-angle, wide-shot view.", "videos": [{ "method": "Direct", "src": "videos/wan_compare/0-Direct/41-/00.mp4", "filename": "00.mp4" }, { "method": "Sliding Window", "src": "videos/wan_compare/1-Sliding Window/41-/00.mp4", "filename": "00.mp4" }, { "method": "FreeNoise", "src": "videos/wan_compare/2-FreeNoise/41-/00.mp4", "filename": "00.mp4" }, { "method": "FreeLong", "src": "videos/wan_compare/3-FreeLong/41-/00.mp4", "filename": "00.mp4" }, { "method": "FreePCA", "src": "videos/wan_compare/4-FreePCA/41-/00.mp4", "filename": "00.mp4" }, { "method": "FreeSpec (Ours)", "src": "videos/wan_compare/5-FreeSpec/41-/00.mp4", "filename": "00.mp4" }], "source": "Comparison on Wan2.1-1.3B", "display_id": "1" }, { "id": "20", "original_id": "20", "folder": "20-", "prompt": "A motocross rider, wearing full protective gear and a helmet covered in mud, sits on a dirt bike at the starting gate of a muddy track. The rider revs the engine and launches forward with a wheelie, drifts sideways through a sharp muddy corner, jumps over a massive dirt ramp catching significant air, and accelerates rapidly down the straightaway. The scene is chaotic and dirty, with mud clods flying at the camera and motion blur emphasizing the high speed.", "videos": [{ "method": "Direct", "src": "videos/teaser/0-Direct/20-/00.mp4", "filename": "00.mp4" }, { "method": "Sliding Window", "src": "videos/teaser/1-Sliding Window/20-/00.mp4", "filename": "00.mp4" }, { "method": "FreeNoise", "src": "videos/teaser/2-FreeNoise/20-/00.mp4", "filename": "00.mp4" }, { "method": "FreeLong", "src": "videos/teaser/3-FreeLong/20-/00.mp4", "filename": "00.mp4" }, { "method": "FreePCA", "src": "videos/teaser/4-FreePCA/20-/00.mp4", "filename": "00.mp4" }, { "method": "FreeSpec (Ours)", "src": "videos/teaser/5-FreeSpec/20-/00.mp4", "filename": "00.mp4" }], "source": "Overview Result", "display_id": "2" }, { "id": "14", "original_id": "14", "folder": "14-", "prompt": "The camera begins at the top of the dense forest, where thick morning mist drifts gracefully between towering evergreens, sunlight filtering through the leaves and casting dappled spots of light on the forest floor. The air is fresh and moist, carrying the scent of damp earth and greenery. Slowly, the camera descends, revealing dewdrops glistening on the leaves as a gentle breeze rustles through the branches, creating a soft, soothing sound. Along the winding woodland path, the camera occasionally captures a squirrel leaping nimbly between trees, its agile figure darting gracefully across the branches. Continuing its journey, the camera eventually arrives at a tranquil lake, where the surface of the water mirrors the towering trees and distant mountains. In the distance, a heron takes off from the lakeshore, breaking the stillness of the water, leaving ripples that spread gently across the surface. The camera follows the heron's flight, gradually pulling back to reveal the entire serene beauty of the lake, capturing the peaceful ambiance and the interplay of light and shadow.", "videos": [{ "method": "Direct", "src": "videos/teaser/0-Direct/14-/00.mp4", "filename": "00.mp4" }, { "method": "Sliding Window", "src": "videos/teaser/1-Sliding Window/14-/00.mp4", "filename": "00.mp4" }, { "method": "FreeNoise", "src": "videos/teaser/2-FreeNoise/14-/00.mp4", "filename": "00.mp4" }, { "method": "FreeLong", "src": "videos/teaser/3-FreeLong/14-/00.mp4", "filename": "00.mp4" }, { "method": "FreePCA", "src": "videos/teaser/4-FreePCA/14-/00.mp4", "filename": "00.mp4" }, { "method": "FreeSpec (Ours)", "src": "videos/teaser/5-FreeSpec/14-/00.mp4", "filename": "00.mp4" }], "source": "Overview Result", "display_id": "3" }, { "id": "10", "original_id": "10", "folder": "10-", "prompt": "A professional surfer in a matte black wetsuit sits astride a white surfboard, bobbing gently in the turquoise waters of a tropical break during golden hour. The surfer begins paddling furiously with deep, strong arm strokes as a massive wave rises behind them. They swiftly pop up into a standing position, finding their balance instantly on the moving board. Leaning hard, they carve a deep, aggressive turn along the face of the wave, continuing to glide smoothly down the water tunnel. 4k video, water droplets in air, sun flare, high contrast.", "videos": [{ "method": "Direct", "src": "videos/teaser/0-Direct/10-/00.mp4", "filename": "00.mp4" }, { "method": "Sliding Window", "src": "videos/teaser/1-Sliding Window/10-/00.mp4", "filename": "00.mp4" }, { "method": "FreeNoise", "src": "videos/teaser/2-FreeNoise/10-/00.mp4", "filename": "00.mp4" }, { "method": "FreeLong", "src": "videos/teaser/3-FreeLong/10-/00.mp4", "filename": "00.mp4" }, { "method": "FreePCA", "src": "videos/teaser/4-FreePCA/10-/00.mp4", "filename": "00.mp4" }, { "method": "FreeSpec (Ours)", "src": "videos/teaser/5-FreeSpec/10-/00.mp4", "filename": "00.mp4" }], "source": "Overview Result", "display_id": "4" }] }], "more_results": { "id": "more_results", "title": "", "description": "", "exists": true, "layout": "pair", "cases": [{ "id": "1", "original_id": "3", "folder": "3-", "prompt": "A dramatic lightning strike illuminates the iconic Eiffel Tower against a backdrop of dark, ominous clouds in the sky. The lightning crackles and illuminates the structure, casting stark shadows and highlighting every intricate detail. Dark storm clouds swirl menacingly overhead, adding to the intense atmosphere. The Eiffel Tower stands tall and proud amidst the storm, its metal lattice frame gleaming in the electric flash. The scene captures the raw power and beauty of nature's fury, with the lightning slicing through the sky. The lightning bolt strikes the tower, sending a shockwave through the air as it leaves a trail of sparks. The image is captured from a low-angle perspective, emphasizing the grandeur and vulnerability of the tower during the storm.", "videos": [{ "method": "Direct", "src": "videos/more_results/0-Direct/3-/00.mp4", "filename": "00.mp4" }, { "method": "FreeSpec (Ours)", "src": "videos/more_results/5-FreeSpec/3-/00.mp4", "filename": "00.mp4" }] }, { "id": "2", "original_id": "11", "folder": "11-", "prompt": "A joyful fuzzy panda playing a small electric guitar near a cozy campfire. The panda has bright green fur and twinkling blue eyes, surrounded by a warm glow from the flames. In the background, majestic snow mountains with soft, fluffy clouds contrast against a clear, starry night sky. The campfire creates a soft, flickering light, casting shadows on the snow-covered ground. The panda is positioned between the fire and the mountains, its arms gracefully moving as it strums the guitar. The scene is captured with a low-angle shot, emphasizing the serene atmosphere and the lively interaction between the panda and the campfire. Snowflakes gently fall, adding a touch of winter magic. Warm ambient lighting enhances the overall mood.", "videos": [{ "method": "Direct", "src": "videos/more_results/0-Direct/11-/00.mp4", "filename": "00.mp4" }, { "method": "FreeSpec (Ours)", "src": "videos/more_results/5-FreeSpec/11-/00.mp4", "filename": "00.mp4" }] }, { "id": "3", "original_id": "45", "folder": "45-", "prompt": "A vintage steam train gliding gracefully on the right side of a serene lake, as seen from the front. The train is adorned with intricate wooden carvings and painted with vibrant colors, capturing the charm of a bygone era. It travels along a narrow, winding track, with lush greenery lining both sides. The boat is moored near the shore, with a picturesque landscape behind it featuring rolling hills and quaint cottages. The sun sets in the background, casting a warm golden glow over the water. The train moves steadily, the wheels creaking softly as they roll over the tracks. The boat reflects the fading light, creating a harmonious blend of nature and industrial heritage. The scene is captured in a cinematic widescreen format, emphasizing the dynamic motion and subtle textures of the elements. Frontal view, medium shot focusing on the train and the boat.", "videos": [{ "method": "Direct", "src": "videos/more_results/0-Direct/45-/00.mp4", "filename": "00.mp4" }, { "method": "FreeSpec (Ours)", "src": "videos/more_results/5-FreeSpec/45-/00.mp4", "filename": "00.mp4" }] }, { "id": "4", "original_id": "96", "folder": "96-", "prompt": "A sleek black motorcycle weaving skillfully through a narrow city street corner. The rider, clad in tight leather gear, leans confidently into the turn with their helmet securely fastened. The motorcycle's tires screech lightly as it navigates the tight curve, showcasing impressive handling skills. The background features bustling traffic and illuminated buildings, adding to the dynamic atmosphere. The scene captures the essence of urban racing and adrenaline-pumping moments. Low-angle shot focusing on the rider and motorcycle, medium shot of the corner, and a wide shot of the intersection.", "videos": [{ "method": "Direct", "src": "videos/more_results/0-Direct/96-/00.mp4", "filename": "00.mp4" }, { "method": "FreeSpec (Ours)", "src": "videos/more_results/5-FreeSpec/96-/00.mp4", "filename": "00.mp4" }] }] } };</script>
+  <script>
+    async function loadManifest() {
+      if (window.__FREESPEC_MANIFEST__) return window.__FREESPEC_MANIFEST__;
+      throw new Error('Embedded manifest is missing. Rebuild the offline site.');
+    }
 
-function esc(s) {
-  return String(s ?? '').replace(/[&<>\"]/g, ch => ({'&':'&amp;', '<':'&lt;', '>':'&gt;', '"':'&quot;'}[ch]));
-}
+    function esc(s) {
+      return String(s ?? '').replace(/[&<>\"]/g, ch => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[ch]));
+    }
 
-function renderPaper(paper) {
-  document.getElementById('paper-title').textContent = paper.title;
-  document.getElementById('paper-authors').innerHTML = paper.authors.map(a => {
-    const aff = (a.affils || []).map(x => `<sup>${esc(x)}</sup>`).join('');
-    const corr = a.corresponding ? '<sup>*</sup>' : '';
-    const name = a.url
-      ? `<a href="${esc(a.url)}" target="_blank" rel="noopener noreferrer">${esc(a.name)}</a>`
-      : esc(a.name);
-    return `${name}${aff}${corr}`;
-  }).join(', ');
-  const affRoot = document.getElementById('paper-affiliations');
-  affRoot.innerHTML = (paper.affiliations || []).map((a, i) =>
-    `<span><sup>${i + 1}</sup> ${esc(a)}</span>`
-  ).join('');
-  if (!(paper.affiliations || []).length) affRoot.style.display = 'none';
-  document.getElementById('abstract-text').textContent = paper.abstract;
-  document.getElementById('highlight-grid').innerHTML = paper.highlights.map((h, i) =>
-    `<div class="highlight"><strong>${String(i + 1).padStart(2, '0')}</strong>${esc(h)}</div>`
-  ).join('');
-}
+    function renderPaper(paper) {
+      document.getElementById('paper-title').textContent = paper.title;
+      document.getElementById('paper-authors').innerHTML = paper.authors.map(a => {
+        const aff = (a.affils || []).map(x => `<sup>${esc(x)}</sup>`).join('');
+        const corr = a.corresponding ? '<sup>*</sup>' : '';
+        const name = a.url
+          ? `<a href="${esc(a.url)}" target="_blank" rel="noopener noreferrer">${esc(a.name)}</a>`
+          : esc(a.name);
+        return `${name}${aff}${corr}`;
+      }).join(', ');
+      const affRoot = document.getElementById('paper-affiliations');
+      affRoot.innerHTML = (paper.affiliations || []).map((a, i) =>
+        `<span><sup>${i + 1}</sup> ${esc(a)}</span>`
+      ).join('');
+      if (!(paper.affiliations || []).length) affRoot.style.display = 'none';
+      document.getElementById('abstract-text').textContent = paper.abstract;
+      document.getElementById('highlight-grid').innerHTML = paper.highlights.map((h, i) =>
+        `<div class="highlight"><strong>${String(i + 1).padStart(2, '0')}</strong>${esc(h)}</div>`
+      ).join('');
+    }
 
-function tableHTML(rows) {
-  const headers = ['Method', 'Subj.', 'Bkgd.', 'Mot. Smth.', 'Dyn.', 'Aes.', 'Img.', 'Infer. Time'];
-  const numericCols = [1, 2, 3, 4, 5, 6];
-  const best = {};
-  const second = {};
-  numericCols.forEach(col => {
-    const vals = rows.map((r, idx) => ({idx, val: Number(r[col])})).filter(x => Number.isFinite(x.val));
-    const unique = [...new Set(vals.map(x => x.val))].sort((a, b) => b - a);
-    best[col] = unique[0];
-    second[col] = unique[1];
-  });
-  const body = rows.map(r => {
-    const isOurs = /FreeSpec/.test(r[0]);
-    const cells = r.map((c, col) => {
-      let html = esc(c);
-      if (col > 0) {
-        const val = Number(c);
-        if (val === best[col]) html = `<strong>${html}</strong>`;
-        else if (val === second[col]) html = `<u>${html}</u>`;
+    function tableHTML(rows) {
+      const headers = ['Method', 'Subj.', 'Bkgd.', 'Mot. Smth.', 'Dyn.', 'Aes.', 'Img.', 'Infer. Time'];
+      const numericCols = [1, 2, 3, 4, 5, 6];
+      const best = {};
+      const second = {};
+      numericCols.forEach(col => {
+        const vals = rows.map((r, idx) => ({ idx, val: Number(r[col]) })).filter(x => Number.isFinite(x.val));
+        const unique = [...new Set(vals.map(x => x.val))].sort((a, b) => b - a);
+        best[col] = unique[0];
+        second[col] = unique[1];
+      });
+      const body = rows.map(r => {
+        const isOurs = /FreeSpec/.test(r[0]);
+        const cells = r.map((c, col) => {
+          let html = esc(c);
+          if (col > 0) {
+            const val = Number(c);
+            if (val === best[col]) html = `<strong>${html}</strong>`;
+            else if (val === second[col]) html = `<u>${html}</u>`;
+          }
+          return `<td>${html}</td>`;
+        }).join('');
+        return `<tr class="${isOurs ? 'ours' : ''}">${cells}</tr>`;
+      }).join('');
+      return `<table><thead><tr>${headers.map(h => `<th>${h}</th>`).join('')}</tr></thead><tbody>${body}</tbody></table>`;
+    }
+
+    function renderTables(metrics) {
+      document.getElementById('wan-table').innerHTML = tableHTML(metrics.wan || []);
+      document.getElementById('ltx-table').innerHTML = tableHTML(metrics.ltx || []);
+    }
+
+    function figureById(figures, id) {
+      return (figures || []).find(f => f.id === id);
+    }
+
+    function setFigure(elementId, fig, caption) {
+      const root = document.getElementById(elementId);
+      if (!root) return;
+      if (!fig) {
+        root.innerHTML = `<figcaption>Figure not found. Please place the expected file under figs/.</figcaption>`;
+        return;
       }
-      return `<td>${html}</td>`;
-    }).join('');
-    return `<tr class="${isOurs ? 'ours' : ''}">${cells}</tr>`;
-  }).join('');
-  return `<table><thead><tr>${headers.map(h => `<th>${h}</th>`).join('')}</tr></thead><tbody>${body}</tbody></table>`;
-}
+      root.innerHTML = `<img src="${esc(fig.src)}" alt="${esc(fig.title)}" loading="lazy" /><figcaption>${esc(caption || fig.title)}</figcaption>`;
+    }
 
-function renderTables(metrics) {
-  document.getElementById('wan-table').innerHTML = tableHTML(metrics.wan || []);
-  document.getElementById('ltx-table').innerHTML = tableHTML(metrics.ltx || []);
-}
+    function renderFigures(figures, manifest) {
+      document.getElementById('motivation-text').textContent = manifest.motivation_text || '';
+      const methodOverview = document.getElementById('method-overview-text');
+      if (methodOverview) methodOverview.textContent = manifest.method_overview_text || '';
+      document.getElementById('method-comparison-text').textContent = manifest.method_comparison_text || '';
+      setFigure('motivation-figure', figureById(figures, 'motivation'), 'Spectral and qualitative analysis of enlarged self-attention windows. Enlarged windows reduce effective rank and increase singular-spectrum concentration; dominant singular components preserve coarse structure but smooth fine details and weaken motion-rich temporal variations.');
+      setFigure('framework-figure', figureById(figures, 'framework'), 'Overview of FreeSpec. FreeSpec performs dual-branch attention, rank- and timestep-aware singular-spectrum modulation, and local-basis reconstruction during inference.');
+      setFigure('fusion-figure', figureById(figures, 'fusion'), 'Comparison of representative training-free global-local fusion paradigms. FreeSpec performs rank-aware singular-spectrum modulation and reconstructs the fused representation under the local singular basis.');
+    }
 
-function figureById(figures, id) {
-  return (figures || []).find(f => f.id === id);
-}
+    function methodTitle(method) {
+      const map = window.__FREESPEC_MANIFEST__?.method_limitations || {};
+      if (/FreeSpec/.test(method)) return esc(method);
+      const limitation = map[method] || '';
+      if (!limitation) return esc(method);
+      return `${esc(method)}: ${esc(limitation)}`;
+    }
 
-function setFigure(elementId, fig, caption) {
-  const root = document.getElementById(elementId);
-  if (!root) return;
-  if (!fig) {
-    root.innerHTML = `<figcaption>Figure not found. Please place the expected file under figs/.</figcaption>`;
-    return;
-  }
-  root.innerHTML = `<img src="${esc(fig.src)}" alt="${esc(fig.title)}" loading="lazy" /><figcaption>${esc(caption || fig.title)}</figcaption>`;
-}
-
-function renderFigures(figures, manifest) {
-  document.getElementById('motivation-text').textContent = manifest.motivation_text || '';
-  const methodOverview = document.getElementById('method-overview-text');
-  if (methodOverview) methodOverview.textContent = manifest.method_overview_text || '';
-  document.getElementById('method-comparison-text').textContent = manifest.method_comparison_text || '';
-  setFigure('motivation-figure', figureById(figures, 'motivation'), 'Spectral and qualitative analysis of enlarged self-attention windows. Enlarged windows reduce effective rank and increase singular-spectrum concentration; dominant singular components preserve coarse structure but smooth fine details and weaken motion-rich temporal variations.');
-  setFigure('framework-figure', figureById(figures, 'framework'), 'Overview of FreeSpec. FreeSpec performs dual-branch attention, rank- and timestep-aware singular-spectrum modulation, and local-basis reconstruction during inference.');
-  setFigure('fusion-figure', figureById(figures, 'fusion'), 'Comparison of representative training-free global-local fusion paradigms. FreeSpec performs rank-aware singular-spectrum modulation and reconstructs the fused representation under the local singular basis.');
-}
-
-function methodTitle(method) {
-  const map = window.__FREESPEC_MANIFEST__?.method_limitations || {};
-  if (/FreeSpec/.test(method)) return esc(method);
-  const limitation = map[method] || '';
-  if (!limitation) return esc(method);
-  return `${esc(method)}: ${esc(limitation)}`;
-}
-
-function renderCase(collection, caseIndex = 0) {
-  const caseData = collection.cases[caseIndex];
-  const prompt = caseData.prompt || 'Prompt not found in prompt.txt for this case.';
-  const videos = caseData.videos.map(v => `
+    function renderCase(collection, caseIndex = 0) {
+      const caseData = collection.cases[caseIndex];
+      const prompt = caseData.prompt || 'Prompt not found in prompt.txt for this case.';
+      const videos = caseData.videos.map(v => `
     <article class="video-card">
       <video controls muted loop autoplay playsinline preload="metadata" src="${esc(v.src)}"></video>
       <div class="video-meta"><span class="method-name">${methodTitle(v.method)}</span></div>
     </article>`).join('');
-  const gridClass = collection.layout === 'pair' ? 'video-grid pair-grid' : 'video-grid';
-  const displayId = caseData.display_id || caseData.id;
-  return `<p class="prompt-box"><strong>Prompt ${esc(displayId)}.</strong> ${esc(prompt)}</p><div class="${gridClass}">${videos}</div>`;
-}
+      const gridClass = collection.layout === 'pair' ? 'video-grid pair-grid' : 'video-grid';
+      const displayId = caseData.display_id || caseData.id;
+      return `<p class="prompt-box"><strong>Prompt ${esc(displayId)}.</strong> ${esc(prompt)}</p><div class="${gridClass}">${videos}</div>`;
+    }
 
-function playPanelVideos(panel) {
-  const videos = [...panel.querySelectorAll('video')];
-  videos.forEach(v => {
-    try { v.currentTime = 0; } catch (_) {}
-    v.play().catch(() => {});
-  });
-}
+    function playPanelVideos(panel) {
+      const videos = [...panel.querySelectorAll('video')];
+      videos.forEach(v => {
+        try { v.currentTime = 0; } catch (_) { }
+        v.play().catch(() => { });
+      });
+    }
 
 
-function renderSingleCollection(rootId, collection) {
-  const root = document.getElementById(rootId);
-  if (!root) return;
-  if (!collection || !collection.exists) {
-    root.innerHTML = `<section class="collection"><p class="muted">Folder not found. Expected selected_videos/${esc(collection?.id || 'more_results')}.</p></section>`;
-    return;
-  }
-  if (!collection.cases.length) {
-    root.innerHTML = `<section class="collection"><p class="muted">No videos found in this collection.</p></section>`;
-    return;
-  }
-  const ci = 'more';
-  const tabs = collection.cases.map((item, i) => `<button class="case-tab ${i === 0 ? 'active' : ''}" data-more-case="${i}" type="button">Case ${esc(item.id)}</button>`).join('');
-  const header = collection.title
-    ? `<div class="collection-title"><div><h3>${esc(collection.title)}</h3><p class="muted">${esc(collection.description)}</p></div><span class="muted">${collection.cases.length} case(s)</span></div>`
-    : ``;
-  root.innerHTML = `<section class="collection" data-more="true">
+    function renderSingleCollection(rootId, collection) {
+      const root = document.getElementById(rootId);
+      if (!root) return;
+      if (!collection || !collection.exists) {
+        root.innerHTML = `<section class="collection"><p class="muted">Folder not found. Expected selected_videos/${esc(collection?.id || 'more_results')}.</p></section>`;
+        return;
+      }
+      if (!collection.cases.length) {
+        root.innerHTML = `<section class="collection"><p class="muted">No videos found in this collection.</p></section>`;
+        return;
+      }
+      const ci = 'more';
+      const tabs = collection.cases.map((item, i) => `<button class="case-tab ${i === 0 ? 'active' : ''}" data-more-case="${i}" type="button">Case ${esc(item.id)}</button>`).join('');
+      const header = collection.title
+        ? `<div class="collection-title"><div><h3>${esc(collection.title)}</h3><p class="muted">${esc(collection.description)}</p></div><span class="muted">${collection.cases.length} case(s)</span></div>`
+        : ``;
+      root.innerHTML = `<section class="collection" data-more="true">
     ${header}
     <div class="case-tabs">${tabs}</div>
     <div class="case-panel" id="case-panel-${ci}">${renderCase(collection, 0)}</div>
   </section>`;
-  setTimeout(() => playPanelVideos(document.getElementById(`case-panel-${ci}`)), 50);
-  root.addEventListener('click', ev => {
-    const btn = ev.target.closest('.case-tab');
-    if (!btn) return;
-    const caseIndex = Number(btn.dataset.moreCase);
-    root.querySelectorAll('.case-tab').forEach(b => b.classList.remove('active'));
-    btn.classList.add('active');
-    const panel = document.getElementById(`case-panel-${ci}`);
-    panel.innerHTML = renderCase(collection, caseIndex);
-    setTimeout(() => playPanelVideos(panel), 30);
-  });
-}
+      setTimeout(() => playPanelVideos(document.getElementById(`case-panel-${ci}`)), 50);
+      root.addEventListener('click', ev => {
+        const btn = ev.target.closest('.case-tab');
+        if (!btn) return;
+        const caseIndex = Number(btn.dataset.moreCase);
+        root.querySelectorAll('.case-tab').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        const panel = document.getElementById(`case-panel-${ci}`);
+        panel.innerHTML = renderCase(collection, caseIndex);
+        setTimeout(() => playPanelVideos(panel), 30);
+      });
+    }
 
-function renderCollections(collections) {
-  const root = document.getElementById('collections');
-  root.innerHTML = collections.map((c, ci) => {
-    if (!c.exists) {
-      return `<section class="collection"><div class="collection-title"><h3>${esc(c.title)}</h3></div><p class="muted">Folder not found. Expected selected_videos/${esc(c.id)}.</p></section>`;
-    }
-    if (!c.cases.length) {
-      return `<section class="collection"><div class="collection-title"><h3>${esc(c.title)}</h3></div><p class="muted">No videos found in this collection.</p></section>`;
-    }
-    const tabs = c.cases.map((item, i) => `<button class="case-tab ${i === 0 ? 'active' : ''}" data-ci="${ci}" data-case="${i}" type="button">Case ${esc(item.display_id || item.id)}</button>`).join('');
-    const header = c.title
-      ? `<div class="collection-title"><div><h3>${esc(c.title)}</h3><p class="muted">${esc(c.description)}</p></div><span class="muted">${c.cases.length} case(s)</span></div>`
-      : ``;
-    return `<section class="collection" data-ci="${ci}">
+    function renderCollections(collections) {
+      const root = document.getElementById('collections');
+      root.innerHTML = collections.map((c, ci) => {
+        if (!c.exists) {
+          return `<section class="collection"><div class="collection-title"><h3>${esc(c.title)}</h3></div><p class="muted">Folder not found. Expected selected_videos/${esc(c.id)}.</p></section>`;
+        }
+        if (!c.cases.length) {
+          return `<section class="collection"><div class="collection-title"><h3>${esc(c.title)}</h3></div><p class="muted">No videos found in this collection.</p></section>`;
+        }
+        const tabs = c.cases.map((item, i) => `<button class="case-tab ${i === 0 ? 'active' : ''}" data-ci="${ci}" data-case="${i}" type="button">Case ${esc(item.display_id || item.id)}</button>`).join('');
+        const header = c.title
+          ? `<div class="collection-title"><div><h3>${esc(c.title)}</h3><p class="muted">${esc(c.description)}</p></div><span class="muted">${c.cases.length} case(s)</span></div>`
+          : ``;
+        return `<section class="collection" data-ci="${ci}">
       ${header}
       <div class="case-tabs">${tabs}</div>
       <div class="case-panel" id="case-panel-${ci}">${renderCase(c, 0)}</div>
     </section>`;
-  }).join('');
+      }).join('');
 
-  setTimeout(() => document.querySelectorAll('.case-panel').forEach(playPanelVideos), 50);
+      setTimeout(() => document.querySelectorAll('.case-panel').forEach(playPanelVideos), 50);
 
-  root.addEventListener('click', ev => {
-    const btn = ev.target.closest('.case-tab');
-    if (!btn) return;
-    const ci = Number(btn.dataset.ci);
-    const caseIndex = Number(btn.dataset.case);
-    document.querySelectorAll(`.collection[data-ci="${ci}"] .case-tab`).forEach(b => b.classList.remove('active'));
-    btn.classList.add('active');
-    const panel = document.getElementById(`case-panel-${ci}`);
-    panel.innerHTML = renderCase(collections[ci], caseIndex);
-    setTimeout(() => playPanelVideos(panel), 30);
-  });
-}
+      root.addEventListener('click', ev => {
+        const btn = ev.target.closest('.case-tab');
+        if (!btn) return;
+        const ci = Number(btn.dataset.ci);
+        const caseIndex = Number(btn.dataset.case);
+        document.querySelectorAll(`.collection[data-ci="${ci}"] .case-tab`).forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        const panel = document.getElementById(`case-panel-${ci}`);
+        panel.innerHTML = renderCase(collections[ci], caseIndex);
+        setTimeout(() => playPanelVideos(panel), 30);
+      });
+    }
 
-function visibleVideos() {
-  return [...document.querySelectorAll('video')].filter(v => v.offsetParent !== null);
-}
+    function visibleVideos() {
+      return [...document.querySelectorAll('video')].filter(v => v.offsetParent !== null);
+    }
 
-function bindVideoControls() {
-  document.getElementById('play-all').addEventListener('click', () => visibleVideos().forEach(v => v.play().catch(() => {})));
-  document.getElementById('pause-all').addEventListener('click', () => visibleVideos().forEach(v => v.pause()));
-  document.addEventListener('mouseenter', ev => {
-    if (!document.getElementById('sync-hover').checked) return;
-    const card = ev.target.closest?.('.video-card');
-    if (!card) return;
-    card.querySelector('video')?.play().catch(() => {});
-  }, true);
-}
+    function bindVideoControls() {
+      document.getElementById('play-all').addEventListener('click', () => visibleVideos().forEach(v => v.play().catch(() => { })));
+      document.getElementById('pause-all').addEventListener('click', () => visibleVideos().forEach(v => v.pause()));
+      document.addEventListener('mouseenter', ev => {
+        if (!document.getElementById('sync-hover').checked) return;
+        const card = ev.target.closest?.('.video-card');
+        if (!card) return;
+        card.querySelector('video')?.play().catch(() => { });
+      }, true);
+    }
 
-loadManifest().then(manifest => {
-  renderPaper(manifest.paper);
-  renderCollections(manifest.collections);
-  renderSingleCollection('more-results-root', manifest.more_results);
-  renderTables(manifest.metrics);
-  renderFigures(manifest.figures, manifest);
-  bindVideoControls();
-}).catch(err => {
-  document.body.insertAdjacentHTML('afterbegin', `<pre style="padding:20px;background:#fee;border:1px solid #d99">${esc(err.message)}</pre>`);
-});
+    loadManifest().then(manifest => {
+      renderPaper(manifest.paper);
+      renderCollections(manifest.collections);
+      renderSingleCollection('more-results-root', manifest.more_results);
+      renderTables(manifest.metrics);
+      renderFigures(manifest.figures, manifest);
+      bindVideoControls();
+    }).catch(err => {
+      document.body.insertAdjacentHTML('afterbegin', `<pre style="padding:20px;background:#fee;border:1px solid #d99">${esc(err.message)}</pre>`);
+    });
 
-</script>
+  </script>
 </body>
+
 </html>
