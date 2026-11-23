@@ -583,6 +583,23 @@
         grid-template-columns: 1fr;
       }
     }
+    .paper-venue {
+      margin: 0 0 20px;
+      text-align: center;
+    }
+    
+    .venue-badge {
+      display: inline-block;
+      padding: 8px 22px;
+      border-radius: 8px;
+      background: var(--accent);
+      color: #fff;
+      font-family: ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+      font-size: clamp(20px, 2.2vw, 26px);
+      font-weight: 800;
+      line-height: 1.2;
+      letter-spacing: 0.03em;
+    }
   </style>
 </head>
 
@@ -590,6 +607,11 @@
   <header class="hero" id="top">
     <div class="hero-inner">
       <h1 id="paper-title">FreeSpec</h1>
+
+      <p class="paper-venue">
+        <span class="venue-badge">NeurIPS 2026</span>
+      </p>
+      
       <p class="authors" id="paper-authors"></p>
       <div class="affiliations" id="paper-affiliations"></div>
       <div class="resource-links" aria-label="Paper resources">
